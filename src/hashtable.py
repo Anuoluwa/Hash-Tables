@@ -15,6 +15,7 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
+        self.items = 0
 
 
     def _hash(self, key):
@@ -51,7 +52,45 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+
+        # check to see if the value at the index is not None
+        if self.storage[index] is not None:
+            # create a new LinkedPair class with the key and value
+            new_pair = LinkedPair(key, value)
+
+            # store the head of the linked list in a variable
+            current_pair = self.storage[index]
+
+            # if current_pair key == key simply replace the value with value and return
+            if current_pair.key == key:
+                current_pair.value = value
+                return
+
+            # loop through to the end of the linked list and insert the new linked pair
+            while current_pair.next is not None:
+                # move to the next pair
+                current_pair = current_pair.next
+
+                # if current_pair key == key simply replace the value with value and return
+                if current_pair.key == key:
+                    current_pair.value = value
+                    return
+
+            # set the next pair to the new_pair
+            current_pair.next = new_pair
+            # increment the item count
+            self.items += 1
+        # otherwise, make a LinkedPair with the key, value and set it at that index
+        else:
+            self.storage[index] = LinkedPair(key, value)
+            # increment the item count
+            self.items += 1
+
+        # check to see if the load factor exceeds 0.7
+        if (self.items / len(self.storage)) > 0.7:
+            # call self.resize to double the size of the hash table's storage
+            self.resize()
 
 
 
@@ -63,7 +102,42 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+
+        # check to see if the value at the index is not None
+        if self.storage[index] is not None:
+            # set the current pair to the head of the linked list
+            current_pair = self.storage[index]
+
+            # if current pair key == key or there is no next pair, set the current index to current_pair next
+            if current_pair.key == key or current_pair.next is None:
+                self.storage[index] = current_pair.next
+                # decrement the count
+                self.items -= 1
+            # otherwise
+            else:
+                # loop through the linked list
+                while current_pair is not None:
+                    # let next pair = current pair next
+                    next_pair = current_pair.next
+
+                    # if next pair key == key
+                    if next_pair.key == key:
+                        # set current pair next to next pair next
+                        current_pair.next = next_pair.next
+                        # decrement the count
+                        self.items -= 1
+
+                    # set current pair to current pair next
+                    current_pair = current_pair.next
+        # otherwise, print a warning
+        else:
+            print("No match for that key!")
+
+        # check to see if the load factor is under 0.2
+        if (self.items / len(self.storage)) < 0.2:
+            # call self.shrink to halve the size of the hash table's storage
+            self.shrink()
 
 
     def retrieve(self, key):
@@ -74,7 +148,28 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+
+        # check to see if the value at the index is not None
+        if self.storage[index] is not None:
+            # let current pair hold the head of the linked list
+            current_pair = self.storage[index]
+
+            # loop through the linked list to find the key
+            while current_pair is not None:
+                # if the current linked pair key == key return the value
+                if current_pair.key == key:
+                    return current_pair.value
+
+                # increment current_pair
+                current_pair = current_pair.next
+
+            # return None is a key matching the input key is not found
+            return None
+
+        # otherwise return None
+        else:
+            return None
 
 
     def resize(self):
@@ -84,8 +179,27 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        self.capacity *= 2
+        # reset the item count to zero
+        self.items = 0
+        # let old_storage hold self.storage
+        old_storage = self.storage
+        # point self.storage to a list of capacity self.capacity
+        self.storage = [None] * self.capacity
 
+        # loop through old_storage and rehash every key/value pair
+        for item in old_storage:
+            # if item is not None
+            if item is not None:
+                # set the head of the linked list to current_pair
+                current_pair = item
+
+                # loop through the linked list
+                while current_pair is not None:
+                    # call self.insert with the key/value of the linked pair
+                    self.insert(current_pair.key, current_pair.value)
+                    # set current_pair to current_pair next
+                    current_pair = current_pair.next
 
 
 if __name__ == "__main__":
